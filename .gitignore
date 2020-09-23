@@ -151,3 +151,9 @@ dmypy.json
 .history
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,python
+
+
+
+# ignoring Pipfile's  files, as they are useful only for vscode linting
+Pipfile
+Pipfile.lock

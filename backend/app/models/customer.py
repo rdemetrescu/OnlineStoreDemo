@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import Field
+from pydantic import Field, EmailStr
 
 from app.models.core import BaseModel, DateTimeModelMixin, IDModelMixin
 
@@ -10,7 +10,7 @@ price_validation = Field(..., ge=0)
 class CustomerBase(BaseModel):
     first_name: Optional[str]
     last_name: Optional[str]
-    email: Optional[str]
+    email: Optional[EmailStr]
     phone: Optional[str]
     street: Optional[str]
     city: Optional[str]
@@ -22,7 +22,7 @@ class CustomerBase(BaseModel):
 class CustomerCreate(CustomerBase):
     first_name: str
     last_name: str
-    email: str
+    email: EmailStr
     phone: str
     street: str
     city: str
@@ -34,7 +34,7 @@ class CustomerCreate(CustomerBase):
 class CustomerUpdate(CustomerBase):
     first_name: str
     last_name: str
-    email: str
+    email: EmailStr
     phone: str
     street: str
     city: str
@@ -50,7 +50,7 @@ class Customer(IDModelMixin, DateTimeModelMixin, CustomerBase):
 class CustomerInDB(IDModelMixin, DateTimeModelMixin, CustomerBase):
     first_name: str
     last_name: str
-    email: str
+    email: EmailStr
     phone: str
     street: str
     city: str

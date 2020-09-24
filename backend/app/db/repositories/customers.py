@@ -1,7 +1,8 @@
 from typing import List, Optional
 from fastapi.exceptions import HTTPException
 
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, and_
+from starlette.status import HTTP_422_UNPROCESSABLE_ENTITY
 
 from app.db.repositories.base import BaseRepository
 from app.db.tables.customers import customers_table
@@ -47,6 +48,17 @@ class CustomersRepository(BaseRepository):
         query_values = new_customer.dict()
 
         async with self.db.transaction():
+            existing = await self.db.fetch_one(
+                query=select([customers_table]).where(
+                    customers_table.c.email == new_customer.email
+                )
+            )
+            if existing is not None:
+                raise HTTPException(
+                    HTTP_422_UNPROCESSABLE_ENTITY,
+                    "There is already a customer using this email",
+                )
+
             customer = await self.db.fetch_one(
                 query=customers_table.insert().returning(*customers_table.columns),
                 values=query_values,
@@ -67,6 +79,20 @@ class CustomersRepository(BaseRepository):
         ).dict()
 
         async with self.db.transaction():
+            existing = await self.db.fetch_one(
+                query=select([customers_table]).where(
+                    and_(
+                        customers_table.c.email == customer.email,
+                        customers_table.c.id != customer.id,
+                    )
+                )
+            )
+            if existing is not None:
+                raise HTTPException(
+                    HTTP_422_UNPROCESSABLE_ENTITY,
+                    "There is already a customer using this email",
+                )
+
             customer = await self.db.fetch_one(
                 query=customers_table.update()
                 .where(customers_table.c.id == customer_id)

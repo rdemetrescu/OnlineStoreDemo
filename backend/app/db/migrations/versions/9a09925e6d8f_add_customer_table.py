@@ -21,7 +21,7 @@ def create_customer_table() -> None:
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("first_name", sa.Text, nullable=False),
         sa.Column("last_name", sa.Text, nullable=False),
-        sa.Column("email", sa.Text, nullable=False, unique=False),  # TODO: make unique
+        sa.Column("email", sa.Text, nullable=False, unique=True),
         sa.Column("phone", sa.Text, nullable=False),
         sa.Column("street", sa.Text, nullable=False),
         sa.Column("city", sa.Text, nullable=False),

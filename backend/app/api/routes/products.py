@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Depends, Body
 from starlette import status
 
 from app.api.dependencies.database import get_repository
@@ -17,7 +17,7 @@ router = APIRouter()
     name="products:create-product",
 )
 async def create_product(
-    new_product: ProductCreate = Body(..., embed=True),
+    new_product: ProductCreate,
     products_repo: ProductsRepository = Depends(get_repository(ProductsRepository)),
 ):
     created_product = await products_repo.create_product(new_product=new_product)

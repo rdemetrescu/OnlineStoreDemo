@@ -12,7 +12,7 @@ from starlette.status import (
 )
 
 from app.db.repositories.products import ProductsRepository
-from app.models.product import ProductCreate, ProductInDB
+from app.models.product import ProductCreate, ProductInDB, ProductUpdate
 
 
 @pytest.fixture
@@ -70,51 +70,149 @@ VALID_NEW_PRODUCTS = (
 )
 
 INVALID_NEW_PRODUCTS = (
-    dict(),
     dict(
+        # empty info
+    ),
+    dict(
+        # price is negative
         name="test product name",
         description="test product description",
         available="True",
         price=-123.45,
     ),
-    dict(
+    dict(  # available is invalid boolean
         name="test product name",
         description="test product description",
         available="invalid bool",
         price="123.45",
     ),
-    dict(
+    dict(  # price is invalid float
         name="test product name",
         description="test product description",
         available="True",
         price="invalid number",
     ),
-    dict(
+    dict(  # name is missing - I
         # name="test product name",
         description="test product description",
         available=True,
         price="123.45",
     ),
-    dict(
+    dict(  # name is missing - II
+        name=None,
+        description="test product description",
+        available=True,
+        price="123.45",
+    ),
+    dict(  # available is missing - I
         name="test product name",
         description="test product description",
         # available=True,
         price=123.45,
     ),
-    dict(
+    dict(  # available is missing - II
+        name="test product name",
+        description="test product description",
+        available=None,
+        price=123.45,
+    ),
+    dict(  # price is missing - I
         name="test product name",
         description="test product description",
         available=True,
         # price=123.45,
     ),
+    dict(  # price is missing - II
+        name="test product name",
+        description="test product description",
+        available=True,
+        price=None,
+    ),
 )
 
+INVALID_PRODUCTS_UPDATE = (
+    dict(
+        # empty info
+    ),
+    dict(
+        # price is negative
+        name="test product name",
+        description="test product description",
+        available="True",
+        price=-123.45,
+    ),
+    dict(  # available is invalid boolean
+        name="test product name",
+        description="test product description",
+        available="invalid bool",
+        price="123.45",
+    ),
+    dict(  # price is invalid float
+        name="test product name",
+        description="test product description",
+        available="True",
+        price="invalid number",
+    ),
+    dict(  # name is missing - I
+        # name="test product name",
+        description="test product description",
+        available=True,
+        price="123.45",
+    ),
+    dict(  # name is missing - II
+        name=None,
+        description="test product description",
+        available=True,
+        price="123.45",
+    ),
+    dict(  # available is missing - I
+        name="test product name",
+        description="test product description",
+        # available=True,
+        price=123.45,
+    ),
+    dict(  # available is missing - II
+        name="test product name",
+        description="test product description",
+        available=None,
+        price=123.45,
+    ),
+    dict(  # price is missing - I
+        name="test product name",
+        description="test product description",
+        available=True,
+        # price=123.45,
+    ),
+    dict(  # price is missing - II
+        name="test product name",
+        description="test product description",
+        available=True,
+        price=None,
+    ),
+)
 
-class TestProductsRoutes:
-    @pytest.mark.asyncio
-    async def test_routes_exist(self, app: FastAPI, client: AsyncClient):
-        r = await client.post(app.url_path_for("products:create-product"), json={})
-        assert r.status_code != HTTP_404_NOT_FOUND
+VALID_PRODUCTS_UPDATE = (
+    dict(
+        name="test UPDATED product name",
+        description="test UPDATED product description",
+        available="False",
+        price="7123.45",
+    ),
+    dict(
+        name="test UPDATED product name",
+        # description="test UPDATED product description",
+        description=None,
+        available="False",
+        price=7123.45,
+    ),
+    dict(
+        name="test UPDATED product name",
+        # description="test UPDATED product description",
+        description=None,
+        available=False,
+        price="7123.45",
+    ),
+)
 
 
 class TestCreateProduct:
@@ -123,9 +221,7 @@ class TestCreateProduct:
     async def test_invalid_input_raises_error(
         self, app: FastAPI, client: AsyncClient, payload
     ):
-        r = await client.request(
-            "post", app.url_path_for("products:create-product"), json=payload
-        )
+        r = await client.post(app.url_path_for("products:create-product"), json=payload)
         assert r.status_code == HTTP_422_UNPROCESSABLE_ENTITY, r.text
 
     @pytest.mark.asyncio
@@ -146,6 +242,39 @@ class TestCreateProduct:
 
         created_product = ProductCreate(**r.json())
         assert created_product.dict() == ProductCreate(**payload).dict(), r.text
+
+
+class TestUpdateProduct:
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("payload", INVALID_PRODUCTS_UPDATE)
+    async def test_invalid_input_raises_error(
+        self, app: FastAPI, client: AsyncClient, payload, test_product: ProductInDB
+    ):
+        r = await client.put(
+            app.url_path_for(
+                "products:update-product", product_id=str(test_product.id)
+            ),
+            json=payload,
+        )
+        assert r.status_code == HTTP_422_UNPROCESSABLE_ENTITY, r.text
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("payload", VALID_PRODUCTS_UPDATE)
+    async def test_valid_input_update_product(
+        self, app: FastAPI, client: AsyncClient, payload, test_product: ProductInDB
+    ):
+        r = await client.put(
+            app.url_path_for(
+                "products:update-product", product_id=str(test_product.id)
+            ),
+            json=payload,
+        )
+        assert r.status_code == HTTP_200_OK, r.text
+
+        assert test_product.id == r.json()["id"]
+
+        updated_product = ProductUpdate(**r.json())
+        assert updated_product.dict() == ProductUpdate(**payload).dict(), r.text
 
 
 class TestGetProduct:
@@ -188,7 +317,7 @@ class TestGetProduct:
         r = await client.get(app.url_path_for("products:get-all-products"))
 
         assert r.status_code == HTTP_200_OK
-        assert len(r.json()) >= 10
+        assert len(r.json()) >= len(test_10_products)
 
     @pytest.mark.asyncio
     async def test_get_products_pagination(
@@ -233,3 +362,45 @@ class TestGetProduct:
         )
         assert r3.status_code == HTTP_200_OK
         assert r3.json() == []
+
+
+class TestDeleteProduct:
+    @pytest.mark.asyncio
+    async def test_delete_product_by_id(
+        self, app: FastAPI, client: AsyncClient, test_product: ProductInDB
+    ):
+
+        r = await client.delete(
+            app.url_path_for(
+                "products:delete-product-by-id", product_id=str(test_product.id)
+            )
+        )
+        assert r.status_code == HTTP_200_OK
+        product = ProductInDB(**r.json())
+        assert product.id == test_product.id
+
+        r = await client.get(
+            app.url_path_for(
+                "products:delete-product-by-id", product_id=str(test_product.id)
+            )
+        )
+
+        # Product shouldn't be found anymore
+        assert r.status_code == HTTP_404_NOT_FOUND
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "wrong_id, expected_status",
+        (
+            (" ", 422),
+            ("0", 422),
+            ("987654321", 404),  # product does not exist  :)
+        ),
+    )
+    async def test_delete_product_by_id_with_wrong_id(
+        self, app: FastAPI, client: AsyncClient, wrong_id: str, expected_status: int
+    ):
+        r = await client.delete(
+            app.url_path_for("products:delete-product-by-id", product_id=wrong_id)
+        )
+        assert r.status_code == expected_status

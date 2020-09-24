@@ -16,5 +16,5 @@ products_table = Table(
         server_default="false",
     ),
     Column("price", Numeric(10, 2), nullable=False),
-    *default_timestamps_auditing
+    *default_timestamps_auditing()
 )

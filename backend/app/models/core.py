@@ -1,10 +1,10 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class IDModelMixin(BaseModel):
-    id: int
+    id: int = Field(..., gt=0)
 
 
 class DateTimeModelMixin(BaseModel):

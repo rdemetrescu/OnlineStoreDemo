@@ -1,4 +1,4 @@
-"""create main tables
+"""create products table
 
 Revision ID: 3f592d7f0c9d
 Revises:

@@ -1,4 +1,4 @@
-"""Add customer table
+"""create customers table
 
 Revision ID: 9a09925e6d8f
 Revises: 3f592d7f0c9d
@@ -19,8 +19,7 @@ def create_customer_table() -> None:
     op.create_table(
         "customers",
         sa.Column("id", sa.Integer, primary_key=True),
-        sa.Column("first_name", sa.Text, nullable=False),
-        sa.Column("last_name", sa.Text, nullable=False),
+        sa.Column("name", sa.Text, nullable=False),
         sa.Column("email", sa.Text, nullable=False, unique=True),
         sa.Column("phone", sa.Text, nullable=False),
         sa.Column("street", sa.Text, nullable=False),

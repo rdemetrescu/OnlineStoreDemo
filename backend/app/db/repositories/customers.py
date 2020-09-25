@@ -27,8 +27,7 @@ class CustomersRepository(BaseRepository):
             query = query.where(
                 or_(
                     customers_table.c.email == search,
-                    customers_table.c.first_name.ilike(f"%{search}%"),
-                    customers_table.c.last_name.ilike(f"%{search}%"),
+                    customers_table.c.name.ilike(f"%{search}%"),
                 )
             )
 

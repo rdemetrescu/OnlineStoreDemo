@@ -8,8 +8,7 @@ price_validation = Field(..., ge=0)
 
 
 class CustomerBase(BaseModel):
-    first_name: Optional[str]
-    last_name: Optional[str]
+    name: Optional[str]
     email: Optional[EmailStr]
     phone: Optional[str]
     street: Optional[str]
@@ -20,8 +19,7 @@ class CustomerBase(BaseModel):
 
 
 class CustomerCreate(CustomerBase):
-    first_name: str
-    last_name: str
+    name: str
     email: EmailStr
     phone: str
     street: str
@@ -32,8 +30,7 @@ class CustomerCreate(CustomerBase):
 
 
 class CustomerUpdate(CustomerBase):
-    first_name: str
-    last_name: str
+    name: str
     email: EmailStr
     phone: str
     street: str
@@ -48,8 +45,7 @@ class Customer(IDModelMixin, DateTimeModelMixin, CustomerBase):
 
 
 class CustomerInDB(IDModelMixin, DateTimeModelMixin, CustomerBase):
-    first_name: str
-    last_name: str
+    name: str
     email: EmailStr
     phone: str
     street: str

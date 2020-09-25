@@ -23,8 +23,7 @@ async def test_customer(db: Database) -> CustomerInDB:
 
     return await customer_repo.create_customer(
         new_customer=CustomerCreate(
-            first_name="fake customer first_name [A]",
-            last_name="fake customer last_name [A]",
+            name="fake customer name [A]",
             email=fake_email_generator(),
             phone="fake customer phone [A]",
             street="fake customer street [A]",
@@ -43,8 +42,7 @@ async def test_10_customers(db: Database) -> List[CustomerInDB]:
     return [
         await customer_repo.create_customer(
             new_customer=CustomerCreate(
-                first_name=f"fake customer first_name [B] - {x}",
-                last_name=f"fake customer last_name [B] - {x}",
+                name=f"fake customer name [B] - {x}",
                 email=fake_email_generator(),
                 phone=f"fake customer phone [B] - {x}",
                 street=f"fake customer street [B] - {x}",
@@ -60,8 +58,7 @@ async def test_10_customers(db: Database) -> List[CustomerInDB]:
 
 VALID_NEW_CUSTOMERS = (
     dict(
-        first_name="test customer first_name",
-        last_name="test customer last_name",
+        name="test customer name",
         email=fake_email_generator(),
         phone="test customer phone",
         street="test customer street",
@@ -78,8 +75,7 @@ INVALID_NEW_CUSTOMERS = (
         # empty info
     ),
     # dict(
-    #     first_name="test customer first_name",
-    #     last_name="test customer last_name",
+    #     name="test customer name",
     #     email="INVALID email",
     #     phone="test customer phone",
     #     street="test customer street",
@@ -89,8 +85,7 @@ INVALID_NEW_CUSTOMERS = (
     #     country="test customer country",
     # ),
     dict(
-        # first_name="test customer first_name",
-        last_name="test customer last_name",
+        # name="test customer name",
         email=fake_email_generator(),
         phone="test customer phone",
         street="test customer street",
@@ -100,19 +95,7 @@ INVALID_NEW_CUSTOMERS = (
         country="test customer country",
     ),
     dict(
-        first_name="test customer first_name",
-        # last_name="test customer last_name",
-        email=fake_email_generator(),
-        phone="test customer phone",
-        street="test customer street",
-        city="test customer city",
-        state="test customer state",
-        zip="test customer zip",
-        country="test customer country",
-    ),
-    dict(
-        first_name="test customer first_name",
-        last_name="test customer last_name",
+        name="test customer name",
         # email=fake_email_generator(),
         phone="test customer phone",
         street="test customer street",
@@ -122,8 +105,7 @@ INVALID_NEW_CUSTOMERS = (
         country="test customer country",
     ),
     dict(
-        first_name="test customer first_name",
-        last_name="test customer last_name",
+        name="test customer name",
         email=fake_email_generator(),
         # phone="test customer phone",
         street="test customer street",
@@ -133,8 +115,7 @@ INVALID_NEW_CUSTOMERS = (
         country="test customer country",
     ),
     dict(
-        first_name="test customer first_name",
-        last_name="test customer last_name",
+        name="test customer name",
         email=fake_email_generator(),
         phone="test customer phone",
         # street="test customer street",
@@ -144,8 +125,7 @@ INVALID_NEW_CUSTOMERS = (
         country="test customer country",
     ),
     dict(
-        first_name="test customer first_name",
-        last_name="test customer last_name",
+        name="test customer name",
         email=fake_email_generator(),
         phone="test customer phone",
         street="test customer street",
@@ -155,8 +135,7 @@ INVALID_NEW_CUSTOMERS = (
         country="test customer country",
     ),
     dict(
-        first_name="test customer first_name",
-        last_name="test customer last_name",
+        name="test customer name",
         email=fake_email_generator(),
         phone="test customer phone",
         street="test customer street",
@@ -166,8 +145,7 @@ INVALID_NEW_CUSTOMERS = (
         country="test customer country",
     ),
     dict(
-        first_name="test customer first_name",
-        last_name="test customer last_name",
+        name="test customer name",
         email=fake_email_generator(),
         phone="test customer phone",
         street="test customer street",
@@ -177,8 +155,7 @@ INVALID_NEW_CUSTOMERS = (
         country="test customer country",
     ),
     dict(
-        first_name="test customer first_name",
-        last_name="test customer last_name",
+        name="test customer name",
         email=fake_email_generator(),
         phone="test customer phone",
         street="test customer street",
@@ -195,8 +172,7 @@ INVALID_CUSTOMERS_UPDATE = INVALID_NEW_CUSTOMERS
 
 VALID_CUSTOMERS_UPDATE = (
     dict(
-        first_name="test customer first_name",
-        last_name="test customer last_name",
+        name="test customer name",
         email=fake_email_generator(),
         phone="test customer phone",
         street="test customer street",

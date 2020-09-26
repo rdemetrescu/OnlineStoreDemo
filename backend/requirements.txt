@@ -15,3 +15,4 @@ pytest-xdist==2.1.0
 httpx==0.15.2
 asgi-lifespan==1.0.1
 docker==4.3.1
+faker==4.1.3

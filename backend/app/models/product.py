@@ -1,8 +1,7 @@
 from typing import Optional
 
-from pydantic import Field
-
 from app.models.core import BaseModel, DateTimeModelMixin, IDModelMixin
+from pydantic import Field
 
 price_validation = Field(..., ge=0)
 

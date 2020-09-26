@@ -1,7 +1,10 @@
 from typing import List
 
 import pytest
+from app.db.repositories.customers import CustomersRepository
+from app.models.customer import CustomerCreate, CustomerInDB, CustomerUpdate
 from databases import Database
+from faker import Faker
 from fastapi import FastAPI
 from httpx import AsyncClient
 from starlette.status import (
@@ -11,10 +14,7 @@ from starlette.status import (
     HTTP_422_UNPROCESSABLE_ENTITY,
 )
 
-from app.db.repositories.customers import CustomersRepository
-from app.models.customer import CustomerCreate, CustomerInDB, CustomerUpdate
-
-from .utils import fake_email_generator
+fake = Faker()
 
 
 @pytest.fixture
@@ -23,14 +23,14 @@ async def test_customer(db: Database) -> CustomerInDB:
 
     return await customer_repo.create_customer(
         new_customer=CustomerCreate(
-            name="fake customer name [A]",
-            email=fake_email_generator(),
-            phone="fake customer phone [A]",
-            street="fake customer street [A]",
-            city="fake customer city [A]",
-            state="fake customer state [A]",
-            zip="fake customer zip [A]",
-            country="fake customer country [A]",
+            name=fake.name(),
+            email=fake.email(),
+            phone=fake.phone_number(),
+            street=fake.street_address(),
+            city=fake.city(),
+            state=fake.state(),
+            zip=fake.zipcode(),
+            country=fake.country(),
         )
     )
 
@@ -42,14 +42,14 @@ async def test_10_customers(db: Database) -> List[CustomerInDB]:
     return [
         await customer_repo.create_customer(
             new_customer=CustomerCreate(
-                name=f"fake customer name [B] - {x}",
-                email=fake_email_generator(),
-                phone=f"fake customer phone [B] - {x}",
-                street=f"fake customer street [B] - {x}",
-                city=f"fake customer city [B] - {x}",
-                state=f"fake customer state [B] - {x}",
-                zip=f"fake customer zip [B] - {x}",
-                country=f"fake customer country [B] - {x}",
+                name=f"{fake.name()} - {x}",
+                email=fake.email(),
+                phone=fake.phone_number(),
+                street=fake.street_address(),
+                city=fake.city(),
+                state=fake.street_address(),
+                zip=fake.zipcode(),
+                country=fake.country(),
             )
         )
         for x in range(1, 11)
@@ -58,14 +58,14 @@ async def test_10_customers(db: Database) -> List[CustomerInDB]:
 
 VALID_NEW_CUSTOMERS = (
     dict(
-        name="test customer name",
-        email=fake_email_generator(),
-        phone="test customer phone",
-        street="test customer street",
-        city="test customer city",
-        state="test customer state",
-        zip="test customer zip",
-        country="test customer country",
+        name=fake.name(),
+        email=fake.email(),
+        phone=fake.phone_number(),
+        street=fake.street_address(),
+        city=fake.city(),
+        state=fake.city(),
+        zip=fake.zipcode(),
+        country=fake.country(),
     ),
 )
 
@@ -75,94 +75,94 @@ INVALID_NEW_CUSTOMERS = (
         # empty info
     ),
     # dict(
-    #     name="test customer name",
+    #     name=fake.name(),
     #     email="INVALID email",
-    #     phone="test customer phone",
-    #     street="test customer street",
-    #     city="test customer city",
-    #     state="test customer state",
-    #     zip="test customer zip",
-    #     country="test customer country",
+    #     phone=fake.phone_number(),
+    #     street=fake.street_address(),
+    #     city=fake.city(),
+    #     state=fake.city(),
+    #     zip=fake.zipcode(),
+    #     country=fake.country(),
     # ),
     dict(
-        # name="test customer name",
-        email=fake_email_generator(),
-        phone="test customer phone",
-        street="test customer street",
-        city="test customer city",
-        state="test customer state",
-        zip="test customer zip",
-        country="test customer country",
+        # name=fake.name(),
+        email=fake.email(),
+        phone=fake.phone_number(),
+        street=fake.street_address(),
+        city=fake.city(),
+        state=fake.city(),
+        zip=fake.zipcode(),
+        country=fake.country(),
     ),
     dict(
-        name="test customer name",
-        # email=fake_email_generator(),
-        phone="test customer phone",
-        street="test customer street",
-        city="test customer city",
-        state="test customer state",
-        zip="test customer zip",
-        country="test customer country",
+        name=fake.name(),
+        # email=fake.email(),
+        phone=fake.phone_number(),
+        street=fake.street_address(),
+        city=fake.city(),
+        state=fake.city(),
+        zip=fake.zipcode(),
+        country=fake.country(),
     ),
     dict(
-        name="test customer name",
-        email=fake_email_generator(),
-        # phone="test customer phone",
-        street="test customer street",
-        city="test customer city",
-        state="test customer state",
-        zip="test customer zip",
-        country="test customer country",
+        name=fake.name(),
+        email=fake.email(),
+        # phone=fake.phone_number(),
+        street=fake.street_address(),
+        city=fake.city(),
+        state=fake.city(),
+        zip=fake.zipcode(),
+        country=fake.country(),
     ),
     dict(
-        name="test customer name",
-        email=fake_email_generator(),
-        phone="test customer phone",
-        # street="test customer street",
-        city="test customer city",
-        state="test customer state",
-        zip="test customer zip",
-        country="test customer country",
+        name=fake.name(),
+        email=fake.email(),
+        phone=fake.phone_number(),
+        # street=fake.street_address(),
+        city=fake.city(),
+        state=fake.city(),
+        zip=fake.zipcode(),
+        country=fake.country(),
     ),
     dict(
-        name="test customer name",
-        email=fake_email_generator(),
-        phone="test customer phone",
-        street="test customer street",
-        # city="test customer city",
-        state="test customer state",
-        zip="test customer zip",
-        country="test customer country",
+        name=fake.name(),
+        email=fake.email(),
+        phone=fake.phone_number(),
+        street=fake.street_address(),
+        # city=fake.city(),
+        state=fake.city(),
+        zip=fake.zipcode(),
+        country=fake.country(),
     ),
     dict(
-        name="test customer name",
-        email=fake_email_generator(),
-        phone="test customer phone",
-        street="test customer street",
-        city="test customer city",
-        # state="test customer state",
-        zip="test customer zip",
-        country="test customer country",
+        name=fake.name(),
+        email=fake.email(),
+        phone=fake.phone_number(),
+        street=fake.street_address(),
+        city=fake.city(),
+        # state=fake.city(),
+        zip=fake.zipcode(),
+        country=fake.country(),
     ),
     dict(
-        name="test customer name",
-        email=fake_email_generator(),
-        phone="test customer phone",
-        street="test customer street",
-        city="test customer city",
-        state="test customer state",
-        # zip="test customer zip",
-        country="test customer country",
+        name=fake.name(),
+        email=fake.email(),
+        phone=fake.phone_number(),
+        street=fake.street_address(),
+        city=fake.city(),
+        state=fake.city(),
+        # zip=fake.zipcode(),
+        country=fake.country(),
     ),
     dict(
-        name="test customer name",
-        email=fake_email_generator(),
-        phone="test customer phone",
-        street="test customer street",
-        city="test customer city",
-        state="test customer state",
-        zip="test customer zip",
-        # country="test customer country",
+        name=fake.name(),
+        email=fake.email(),
+        phone=fake.phone_number(),
+        street=fake.street_address(),
+        city=fake.city(),
+        state=fake.city(),
+        zip=fake.zipcode(),
+        # country=fake.country(),
     ),
 )
 
@@ -172,14 +172,14 @@ INVALID_CUSTOMERS_UPDATE = INVALID_NEW_CUSTOMERS
 
 VALID_CUSTOMERS_UPDATE = (
     dict(
-        name="test customer name",
-        email=fake_email_generator(),
-        phone="test customer phone",
-        street="test customer street",
-        city="test customer city",
-        state="test customer state",
-        zip="test customer zip",
-        country="test customer country",
+        name=fake.name(),
+        email=fake.email(),
+        phone=fake.phone_number(),
+        street=fake.street_address(),
+        city=fake.city(),
+        state=fake.city(),
+        zip=fake.zipcode(),
+        country=fake.country(),
     ),
 )
 
@@ -323,7 +323,7 @@ class TestGetCustomer:
 
         r2 = await client.get(
             app.url_path_for("customers:get-all-customers"),
-            params=dict(search="[B] - 1", limit=1000),
+            params=dict(search=" - 1", limit=1000),
         )
         assert r2.status_code == HTTP_200_OK
         assert 0 < len(r2.json()) < len(r1.json())

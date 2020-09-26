@@ -1,10 +1,7 @@
 from typing import Optional
 
-from pydantic import Field, EmailStr
-
 from app.models.core import BaseModel, DateTimeModelMixin, IDModelMixin
-
-price_validation = Field(..., ge=0)
+from pydantic import EmailStr
 
 
 class CustomerBase(BaseModel):

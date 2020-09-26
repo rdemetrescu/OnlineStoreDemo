@@ -15,7 +15,7 @@ class CustomerBase(BaseModel):
     country: Optional[str]
 
 
-class CustomerCreate(CustomerBase):
+class CustomerCreateUpdate(CustomerBase):
     name: str
     email: EmailStr
     phone: str
@@ -27,14 +27,7 @@ class CustomerCreate(CustomerBase):
 
 
 class CustomerUpdate(CustomerBase):
-    name: str
-    email: EmailStr
-    phone: str
-    street: str
-    city: str
-    state: str
-    zip: str
-    country: str
+    pass
 
 
 class Customer(IDModelMixin, DateTimeModelMixin, CustomerBase):

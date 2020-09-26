@@ -1,10 +1,7 @@
 from typing import List
 
 import pytest
-from app.db.repositories.customers import CustomersRepository
-from app.models.customer import CustomerCreate, CustomerInDB, CustomerUpdate
-from databases import Database
-from faker import Faker
+from app.models.customer import CustomerCreateUpdate, CustomerInDB, CustomerUpdate
 from fastapi import FastAPI
 from httpx import AsyncClient
 from starlette.status import (
@@ -14,177 +11,23 @@ from starlette.status import (
     HTTP_422_UNPROCESSABLE_ENTITY,
 )
 
-fake = Faker()
-
-
-@pytest.fixture
-async def test_customer(db: Database) -> CustomerInDB:
-    customer_repo = CustomersRepository(db)
-
-    return await customer_repo.create_customer(
-        new_customer=CustomerCreate(
-            name=fake.name(),
-            email=fake.email(),
-            phone=fake.phone_number(),
-            street=fake.street_address(),
-            city=fake.city(),
-            state=fake.state(),
-            zip=fake.zipcode(),
-            country=fake.country(),
-        )
-    )
-
-
-@pytest.fixture
-async def test_10_customers(db: Database) -> List[CustomerInDB]:
-    customer_repo = CustomersRepository(db)
-
-    return [
-        await customer_repo.create_customer(
-            new_customer=CustomerCreate(
-                name=f"{fake.name()} - {x}",
-                email=fake.email(),
-                phone=fake.phone_number(),
-                street=fake.street_address(),
-                city=fake.city(),
-                state=fake.street_address(),
-                zip=fake.zipcode(),
-                country=fake.country(),
-            )
-        )
-        for x in range(1, 11)
-    ]
-
-
-VALID_NEW_CUSTOMERS = (
-    dict(
-        name=fake.name(),
-        email=fake.email(),
-        phone=fake.phone_number(),
-        street=fake.street_address(),
-        city=fake.city(),
-        state=fake.city(),
-        zip=fake.zipcode(),
-        country=fake.country(),
-    ),
-)
-
-
-INVALID_NEW_CUSTOMERS = (
-    dict(
-        # empty info
-    ),
-    # dict(
-    #     name=fake.name(),
-    #     email="INVALID email",
-    #     phone=fake.phone_number(),
-    #     street=fake.street_address(),
-    #     city=fake.city(),
-    #     state=fake.city(),
-    #     zip=fake.zipcode(),
-    #     country=fake.country(),
-    # ),
-    dict(
-        # name=fake.name(),
-        email=fake.email(),
-        phone=fake.phone_number(),
-        street=fake.street_address(),
-        city=fake.city(),
-        state=fake.city(),
-        zip=fake.zipcode(),
-        country=fake.country(),
-    ),
-    dict(
-        name=fake.name(),
-        # email=fake.email(),
-        phone=fake.phone_number(),
-        street=fake.street_address(),
-        city=fake.city(),
-        state=fake.city(),
-        zip=fake.zipcode(),
-        country=fake.country(),
-    ),
-    dict(
-        name=fake.name(),
-        email=fake.email(),
-        # phone=fake.phone_number(),
-        street=fake.street_address(),
-        city=fake.city(),
-        state=fake.city(),
-        zip=fake.zipcode(),
-        country=fake.country(),
-    ),
-    dict(
-        name=fake.name(),
-        email=fake.email(),
-        phone=fake.phone_number(),
-        # street=fake.street_address(),
-        city=fake.city(),
-        state=fake.city(),
-        zip=fake.zipcode(),
-        country=fake.country(),
-    ),
-    dict(
-        name=fake.name(),
-        email=fake.email(),
-        phone=fake.phone_number(),
-        street=fake.street_address(),
-        # city=fake.city(),
-        state=fake.city(),
-        zip=fake.zipcode(),
-        country=fake.country(),
-    ),
-    dict(
-        name=fake.name(),
-        email=fake.email(),
-        phone=fake.phone_number(),
-        street=fake.street_address(),
-        city=fake.city(),
-        # state=fake.city(),
-        zip=fake.zipcode(),
-        country=fake.country(),
-    ),
-    dict(
-        name=fake.name(),
-        email=fake.email(),
-        phone=fake.phone_number(),
-        street=fake.street_address(),
-        city=fake.city(),
-        state=fake.city(),
-        # zip=fake.zipcode(),
-        country=fake.country(),
-    ),
-    dict(
-        name=fake.name(),
-        email=fake.email(),
-        phone=fake.phone_number(),
-        street=fake.street_address(),
-        city=fake.city(),
-        state=fake.city(),
-        zip=fake.zipcode(),
-        # country=fake.country(),
-    ),
-)
-
-
-INVALID_CUSTOMERS_UPDATE = INVALID_NEW_CUSTOMERS
-
-
-VALID_CUSTOMERS_UPDATE = (
-    dict(
-        name=fake.name(),
-        email=fake.email(),
-        phone=fake.phone_number(),
-        street=fake.street_address(),
-        city=fake.city(),
-        state=fake.city(),
-        zip=fake.zipcode(),
-        country=fake.country(),
-    ),
+from .customers_fixtures import (
+    INVALID_FULL_UPDATE_CUSTOMERS,
+    INVALID_NEW_CUSTOMERS,
+    INVALID_PARTIAL_UPDATE_CUSTOMERS,
+    VALID_FULL_UPDATE_CUSTOMERS,
+    VALID_NEW_CUSTOMERS,
+    VALID_PARTIAL_UPDATE_CUSTOMERS,
+    test_10_customers,
+    test_customer,
 )
 
 
 class TestCreateCustomer:
+    """
+    Testing POST calls
+    """
+
     @pytest.mark.asyncio
     @pytest.mark.parametrize("payload", INVALID_NEW_CUSTOMERS)
     async def test_invalid_input_raises_error(
@@ -211,32 +54,36 @@ class TestCreateCustomer:
             set(r.json().keys()) - set(payload.keys())
         )
 
-        created_customer = CustomerCreate(**r.json())
-        assert created_customer.dict() == CustomerCreate(**payload).dict(), r.text
+        created_customer = CustomerCreateUpdate(**r.json())
+        assert created_customer.dict() == CustomerCreateUpdate(**payload).dict(), r.text
 
 
-class TestUpdateCustomer:
+class TestFullUpdateCustomer:
+    """
+    Testing PUT calls
+    """
+
     @pytest.mark.asyncio
-    @pytest.mark.parametrize("payload", INVALID_CUSTOMERS_UPDATE)
+    @pytest.mark.parametrize("payload", INVALID_FULL_UPDATE_CUSTOMERS)
     async def test_invalid_input_raises_error(
         self, app: FastAPI, client: AsyncClient, payload, test_customer: CustomerInDB
     ):
         r = await client.put(
             app.url_path_for(
-                "customers:update-customer", customer_id=str(test_customer.id)
+                "customers:full-update-customer", customer_id=str(test_customer.id)
             ),
             json=payload,
         )
         assert r.status_code == HTTP_422_UNPROCESSABLE_ENTITY, r.text
 
     @pytest.mark.asyncio
-    @pytest.mark.parametrize("payload", VALID_CUSTOMERS_UPDATE)
+    @pytest.mark.parametrize("payload", VALID_FULL_UPDATE_CUSTOMERS)
     async def test_valid_input_update_customer(
         self, app: FastAPI, client: AsyncClient, payload, test_customer: CustomerInDB
     ):
         r = await client.put(
             app.url_path_for(
-                "customers:update-customer", customer_id=str(test_customer.id)
+                "customers:full-update-customer", customer_id=str(test_customer.id)
             ),
             json=payload,
         )
@@ -248,7 +95,48 @@ class TestUpdateCustomer:
         assert updated_customer.dict() == CustomerUpdate(**payload).dict(), r.text
 
 
+class TestPartialUpdateCustomer:
+    """
+    Testing PATCH calls
+    """
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("payload", INVALID_PARTIAL_UPDATE_CUSTOMERS)
+    async def test_invalid_input_raises_error(
+        self, app: FastAPI, client: AsyncClient, payload, test_customer: CustomerInDB
+    ):
+        r = await client.patch(
+            app.url_path_for(
+                "customers:partial-update-customer", customer_id=str(test_customer.id)
+            ),
+            json=payload,
+        )
+        assert r.status_code == HTTP_422_UNPROCESSABLE_ENTITY, r.text
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("payload", VALID_PARTIAL_UPDATE_CUSTOMERS)
+    async def test_valid_input_partial_update_customer(
+        self, app: FastAPI, client: AsyncClient, payload, test_customer: CustomerInDB
+    ):
+        r = await client.patch(
+            app.url_path_for(
+                "customers:partial-update-customer", customer_id=str(test_customer.id)
+            ),
+            json=payload,
+        )
+        assert r.status_code == HTTP_200_OK, r.text
+
+        assert test_customer.id == r.json()["id"]
+
+        # updated_customer = CustomerUpdate(**r.json())
+        # assert updated_customer.dict() == CustomerUpdate(**payload).dict(), r.text
+
+
 class TestGetCustomer:
+    """
+    Testing GET calls
+    """
+
     @pytest.mark.asyncio
     async def test_get_customer_by_id(
         self, app: FastAPI, client: AsyncClient, test_customer: CustomerInDB
@@ -337,6 +225,10 @@ class TestGetCustomer:
 
 
 class TestDeleteCustomer:
+    """
+    Testing DELETE calls
+    """
+
     @pytest.mark.asyncio
     async def test_delete_customer_by_id(
         self, app: FastAPI, client: AsyncClient, test_customer: CustomerInDB

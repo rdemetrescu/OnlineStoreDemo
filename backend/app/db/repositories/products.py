@@ -1,16 +1,11 @@
 from typing import List, Optional
-from fastapi.exceptions import HTTPException
 
 from sqlalchemy import select
 
 from app.db.repositories.base import BaseRepository
 from app.db.tables.products import products_table
 from app.models.pagination import Pagination
-from app.models.product import (
-    ProductCreate,
-    ProductInDB,
-    ProductUpdate,
-)  # , ProductUpdate
+from app.models.product import ProductBase, ProductCreateUpdate, ProductInDB
 
 
 class ProductsRepository(BaseRepository):
@@ -37,7 +32,7 @@ class ProductsRepository(BaseRepository):
         if not product is None:
             return ProductInDB(**product)
 
-    async def create_product(self, *, new_product: ProductCreate) -> ProductInDB:
+    async def create_product(self, *, new_product: ProductCreateUpdate) -> ProductInDB:
         query_values = new_product.dict()
 
         async with self.db.transaction():
@@ -49,16 +44,18 @@ class ProductsRepository(BaseRepository):
             return ProductInDB(**product)
 
     async def update_product(
-        self, *, product_id: int, product_update: ProductUpdate
+        self,
+        *,
+        product_id: int,
+        product_update: ProductBase,
+        patching: bool,
     ) -> Optional[ProductInDB]:
         product = await self.get_product_by_id(product_id=product_id)
 
         if product is None:
             return
 
-        query_values = product.copy(
-            update=product_update.dict(exclude_unset=True)
-        ).dict()
+        query_values = product_update.dict(exclude_unset=patching)
 
         async with self.db.transaction():
             product = await self.db.fetch_one(

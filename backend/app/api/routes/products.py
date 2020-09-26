@@ -1,14 +1,15 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
-from pydantic import BaseModel
+from pydantic.types import PositiveInt
 from starlette import status
 
 from app.api.dependencies.repositories import get_repository
 from app.db.repositories.products import ProductsRepository
 from app.models.pagination import Pagination
-from app.models.product import Product, ProductCreate, ProductUpdate
+from app.models.product import Product, ProductCreateUpdate, ProductUpdate
+
 
 router = APIRouter()
 
@@ -35,7 +36,7 @@ async def get_all_products(
     name="products:get-product-by-id",
 )
 async def get_product_by_id(
-    product_id: int = Path(..., gt=0),
+    product_id: PositiveInt,
     products_repo: ProductsRepository = Depends(get_repository(ProductsRepository)),
 ):
     product = await products_repo.get_product_by_id(product_id=product_id)
@@ -51,7 +52,7 @@ async def get_product_by_id(
     name="products:create-product",
 )
 async def create_product(
-    new_product: ProductCreate,
+    new_product: ProductCreateUpdate,
     products_repo: ProductsRepository = Depends(get_repository(ProductsRepository)),
 ):
     created_product = await products_repo.create_product(new_product=new_product)
@@ -62,17 +63,16 @@ async def create_product(
     "/{product_id}",
     response_model=Product,
     status_code=status.HTTP_200_OK,
-    name="products:update-product",
+    name="products:full-update-product",
 )
-async def update_product(
+async def full_update_product(
     # using ProductCreate to validate input (required fields) as PUT is used to FULL update
-    product_update: ProductCreate,
-    product_id: int = Path(..., gt=0),
+    product_update: ProductCreateUpdate,
+    product_id: PositiveInt,
     products_repo: ProductsRepository = Depends(get_repository(ProductsRepository)),
 ):
-    payload = ProductUpdate(**product_update.dict())
     updated_product = await products_repo.update_product(
-        product_id=product_id, product_update=payload
+        product_id=product_id, product_update=product_update, patching=False
     )
     return updated_product
 
@@ -83,12 +83,19 @@ async def update_product(
     status_code=status.HTTP_200_OK,
     name="products:partial-update-product",
 )
-async def update_product(
+async def partial_update_product(
     product_update: ProductUpdate,
-    product_id: int = Path(..., gt=0),
+    product_id: PositiveInt,
     products_repo: ProductsRepository = Depends(get_repository(ProductsRepository)),
 ):
-    raise NotImplementedError()
+    # raise Exception(product_update.dict(exclude_unset=True))
+    if not product_update.dict(exclude_unset=True):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "empty payload")
+
+    updated_product = await products_repo.update_product(
+        product_id=product_id, product_update=product_update, patching=True
+    )
+    return updated_product
 
 
 @router.delete(
@@ -97,7 +104,7 @@ async def update_product(
     name="products:delete-product-by-id",
 )
 async def delete_product_by_id(
-    product_id: int = Path(..., gt=0),
+    product_id: PositiveInt,
     products_repo: ProductsRepository = Depends(get_repository(ProductsRepository)),
 ):
     product = await products_repo.delete_product_by_id(product_id=product_id)

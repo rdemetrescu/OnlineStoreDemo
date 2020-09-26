@@ -1,7 +1,7 @@
 from typing import List
 
 import pytest
-from databases import Database
+from app.models.product import ProductCreateUpdate, ProductInDB, ProductUpdate
 from fastapi import FastAPI
 from httpx import AsyncClient
 from starlette.status import (
@@ -11,211 +11,23 @@ from starlette.status import (
     HTTP_422_UNPROCESSABLE_ENTITY,
 )
 
-from app.db.repositories.products import ProductsRepository
-from app.models.product import ProductCreate, ProductInDB, ProductUpdate
-
-
-@pytest.fixture
-async def test_product(db: Database) -> ProductInDB:
-    product_repo = ProductsRepository(db)
-
-    return await product_repo.create_product(
-        new_product=ProductCreate(
-            name="fake product name [A]",
-            description="fake product description [A]",
-            available=True,
-            price=600,
-        )
-    )
-
-
-@pytest.fixture
-async def test_10_products(db: Database) -> List[ProductInDB]:
-    product_repo = ProductsRepository(db)
-
-    return [
-        await product_repo.create_product(
-            new_product=ProductCreate(
-                name=f"fake product name [B] - {x}",
-                description=f"fake product description [B] - {x}",
-                available=x % 2,
-                price=x * 300,
-            )
-        )
-        for x in range(1, 11)
-    ]
-
-
-VALID_NEW_PRODUCTS = (
-    dict(
-        name="test product name",
-        description="test product description",
-        available="True",
-        price="123.45",
-    ),
-    dict(
-        name="test product name",
-        # description="test product description",
-        description=None,
-        available="True",
-        price=123.45,
-    ),
-    dict(
-        name="test product name",
-        # description="test product description",
-        description=None,
-        available=True,
-        price="123.45",
-    ),
-)
-
-INVALID_NEW_PRODUCTS = (
-    dict(
-        # empty info
-    ),
-    dict(
-        # price is negative
-        name="test product name",
-        description="test product description",
-        available="True",
-        price=-123.45,
-    ),
-    dict(  # available is invalid boolean
-        name="test product name",
-        description="test product description",
-        available="invalid bool",
-        price="123.45",
-    ),
-    dict(  # price is invalid float
-        name="test product name",
-        description="test product description",
-        available="True",
-        price="invalid number",
-    ),
-    dict(  # name is missing - I
-        # name="test product name",
-        description="test product description",
-        available=True,
-        price="123.45",
-    ),
-    dict(  # name is missing - II
-        name=None,
-        description="test product description",
-        available=True,
-        price="123.45",
-    ),
-    dict(  # available is missing - I
-        name="test product name",
-        description="test product description",
-        # available=True,
-        price=123.45,
-    ),
-    dict(  # available is missing - II
-        name="test product name",
-        description="test product description",
-        available=None,
-        price=123.45,
-    ),
-    dict(  # price is missing - I
-        name="test product name",
-        description="test product description",
-        available=True,
-        # price=123.45,
-    ),
-    dict(  # price is missing - II
-        name="test product name",
-        description="test product description",
-        available=True,
-        price=None,
-    ),
-)
-
-INVALID_PRODUCTS_UPDATE = (
-    dict(
-        # empty info
-    ),
-    dict(
-        # price is negative
-        name="test product name",
-        description="test product description",
-        available="True",
-        price=-123.45,
-    ),
-    dict(  # available is invalid boolean
-        name="test product name",
-        description="test product description",
-        available="invalid bool",
-        price="123.45",
-    ),
-    dict(  # price is invalid float
-        name="test product name",
-        description="test product description",
-        available="True",
-        price="invalid number",
-    ),
-    dict(  # name is missing - I
-        # name="test product name",
-        description="test product description",
-        available=True,
-        price="123.45",
-    ),
-    dict(  # name is missing - II
-        name=None,
-        description="test product description",
-        available=True,
-        price="123.45",
-    ),
-    dict(  # available is missing - I
-        name="test product name",
-        description="test product description",
-        # available=True,
-        price=123.45,
-    ),
-    dict(  # available is missing - II
-        name="test product name",
-        description="test product description",
-        available=None,
-        price=123.45,
-    ),
-    dict(  # price is missing - I
-        name="test product name",
-        description="test product description",
-        available=True,
-        # price=123.45,
-    ),
-    dict(  # price is missing - II
-        name="test product name",
-        description="test product description",
-        available=True,
-        price=None,
-    ),
-)
-
-VALID_PRODUCTS_UPDATE = (
-    dict(
-        name="test UPDATED product name",
-        description="test UPDATED product description",
-        available="False",
-        price="7123.45",
-    ),
-    dict(
-        name="test UPDATED product name",
-        # description="test UPDATED product description",
-        description=None,
-        available="False",
-        price=7123.45,
-    ),
-    dict(
-        name="test UPDATED product name",
-        # description="test UPDATED product description",
-        description=None,
-        available=False,
-        price="7123.45",
-    ),
+from .products_fixtures import (
+    INVALID_FULL_UPDATE_PRODUCTS,
+    INVALID_NEW_PRODUCTS,
+    INVALID_PARTIAL_UPDATE_PRODUCTS,
+    VALID_FULL_UPDATE_PRODUCTS,
+    VALID_NEW_PRODUCTS,
+    VALID_PARTIAL_UPDATE_PRODUCTS,
+    test_10_products,
+    test_product,
 )
 
 
 class TestCreateProduct:
+    """
+    Testing POST calls
+    """
+
     @pytest.mark.asyncio
     @pytest.mark.parametrize("payload", INVALID_NEW_PRODUCTS)
     async def test_invalid_input_raises_error(
@@ -240,32 +52,36 @@ class TestCreateProduct:
             set(r.json().keys()) - set(payload.keys())
         )
 
-        created_product = ProductCreate(**r.json())
-        assert created_product.dict() == ProductCreate(**payload).dict(), r.text
+        created_product = ProductCreateUpdate(**r.json())
+        assert created_product.dict() == ProductCreateUpdate(**payload).dict(), r.text
 
 
-class TestUpdateProduct:
+class TestFullUpdateProduct:
+    """
+    Testing PUT calls
+    """
+
     @pytest.mark.asyncio
-    @pytest.mark.parametrize("payload", INVALID_PRODUCTS_UPDATE)
+    @pytest.mark.parametrize("payload", INVALID_FULL_UPDATE_PRODUCTS)
     async def test_invalid_input_raises_error(
         self, app: FastAPI, client: AsyncClient, payload, test_product: ProductInDB
     ):
         r = await client.put(
             app.url_path_for(
-                "products:update-product", product_id=str(test_product.id)
+                "products:full-update-product", product_id=str(test_product.id)
             ),
             json=payload,
         )
         assert r.status_code == HTTP_422_UNPROCESSABLE_ENTITY, r.text
 
     @pytest.mark.asyncio
-    @pytest.mark.parametrize("payload", VALID_PRODUCTS_UPDATE)
-    async def test_valid_input_update_product(
+    @pytest.mark.parametrize("payload", VALID_FULL_UPDATE_PRODUCTS)
+    async def test_valid_input_full_update_product(
         self, app: FastAPI, client: AsyncClient, payload, test_product: ProductInDB
     ):
         r = await client.put(
             app.url_path_for(
-                "products:update-product", product_id=str(test_product.id)
+                "products:full-update-product", product_id=str(test_product.id)
             ),
             json=payload,
         )
@@ -277,7 +93,48 @@ class TestUpdateProduct:
         assert updated_product.dict() == ProductUpdate(**payload).dict(), r.text
 
 
+class TestPartialUpdateProduct:
+    """
+    Testing PATCH calls
+    """
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("payload", INVALID_PARTIAL_UPDATE_PRODUCTS)
+    async def test_invalid_input_raises_error(
+        self, app: FastAPI, client: AsyncClient, payload, test_product: ProductInDB
+    ):
+        r = await client.patch(
+            app.url_path_for(
+                "products:partial-update-product", product_id=str(test_product.id)
+            ),
+            json=payload,
+        )
+        assert r.status_code == HTTP_422_UNPROCESSABLE_ENTITY, r.text
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("payload", VALID_PARTIAL_UPDATE_PRODUCTS)
+    async def test_valid_input_partial_update_product(
+        self, app: FastAPI, client: AsyncClient, payload, test_product: ProductInDB
+    ):
+        r = await client.patch(
+            app.url_path_for(
+                "products:partial-update-product", product_id=str(test_product.id)
+            ),
+            json=payload,
+        )
+        assert r.status_code == HTTP_200_OK, r.text
+
+        assert test_product.id == r.json()["id"]
+
+        # updated_product = ProductUpdate(**r.json())
+        # assert updated_product.dict() == ProductUpdate(**payload).dict(), r.text
+
+
 class TestGetProduct:
+    """
+    Testing GET calls
+    """
+
     @pytest.mark.asyncio
     async def test_get_product_by_id(
         self, app: FastAPI, client: AsyncClient, test_product: ProductInDB
@@ -365,6 +222,10 @@ class TestGetProduct:
 
 
 class TestDeleteProduct:
+    """
+    Testing DELETE calls
+    """
+
     @pytest.mark.asyncio
     async def test_delete_product_by_id(
         self, app: FastAPI, client: AsyncClient, test_product: ProductInDB

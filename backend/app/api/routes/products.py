@@ -66,7 +66,6 @@ async def create_product(
     name="products:full-update-product",
 )
 async def full_update_product(
-    # using ProductCreate to validate input (required fields) as PUT is used to FULL update
     product_update: ProductCreateUpdate,
     product_id: PositiveInt,
     products_repo: ProductsRepository = Depends(get_repository(ProductsRepository)),
@@ -74,6 +73,8 @@ async def full_update_product(
     updated_product = await products_repo.update_product(
         product_id=product_id, product_update=product_update, patching=False
     )
+    if updated_product is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Product not found")
     return updated_product
 
 
@@ -88,13 +89,14 @@ async def partial_update_product(
     product_id: PositiveInt,
     products_repo: ProductsRepository = Depends(get_repository(ProductsRepository)),
 ):
-    # raise Exception(product_update.dict(exclude_unset=True))
     if not product_update.dict(exclude_unset=True):
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "empty payload")
 
     updated_product = await products_repo.update_product(
         product_id=product_id, product_update=product_update, patching=True
     )
+    if updated_product is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Product not found")
     return updated_product
 
 

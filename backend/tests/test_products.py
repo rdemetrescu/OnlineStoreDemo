@@ -89,8 +89,19 @@ class TestFullUpdateProduct:
 
         assert test_product.id == r.json()["id"]
 
-        updated_product = ProductUpdate(**r.json())
-        assert updated_product.dict() == ProductUpdate(**payload).dict(), r.text
+        updated_product = ProductCreateUpdate(**r.json())
+        assert updated_product.dict() == ProductCreateUpdate(**payload).dict(), r.text
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("payload", VALID_FULL_UPDATE_PRODUCTS[:1])
+    async def test_full_update_nonexistent_product(
+        self, app: FastAPI, client: AsyncClient, payload
+    ):
+        r = await client.put(
+            app.url_path_for("products:full-update-product", product_id="999999"),
+            json=payload,
+        )
+        assert r.status_code == HTTP_404_NOT_FOUND
 
 
 class TestPartialUpdateProduct:
@@ -126,8 +137,16 @@ class TestPartialUpdateProduct:
 
         assert test_product.id == r.json()["id"]
 
-        # updated_product = ProductUpdate(**r.json())
-        # assert updated_product.dict() == ProductUpdate(**payload).dict(), r.text
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("payload", VALID_PARTIAL_UPDATE_PRODUCTS[:1])
+    async def test_partial_update_nonexistent_product(
+        self, app: FastAPI, client: AsyncClient, payload
+    ):
+        r = await client.patch(
+            app.url_path_for("products:partial-update-product", product_id="999999"),
+            json=payload,
+        )
+        assert r.status_code == HTTP_404_NOT_FOUND
 
 
 class TestGetProduct:

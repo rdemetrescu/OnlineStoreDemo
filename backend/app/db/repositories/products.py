@@ -1,11 +1,11 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from sqlalchemy import select
 
 from app.db.repositories.base import BaseRepository
 from app.db.tables.products import products_table
 from app.models.pagination import Pagination
-from app.models.product import ProductBase, ProductCreateUpdate, ProductInDB
+from app.models.product import ProductCreateUpdate, ProductInDB, ProductUpdate
 
 
 class ProductsRepository(BaseRepository):
@@ -47,7 +47,7 @@ class ProductsRepository(BaseRepository):
         self,
         *,
         product_id: int,
-        product_update: ProductBase,
+        product_update: Union[ProductCreateUpdate, ProductUpdate],
         patching: bool,
     ) -> Optional[ProductInDB]:
         product = await self.get_product_by_id(product_id=product_id)
@@ -77,7 +77,7 @@ class ProductsRepository(BaseRepository):
 
         # Apply validations for product deletion
 
-        await self.db.fetch_one(
+        await self.db.execute(
             query=products_table.delete().where(products_table.c.id == product_id)
         )
 

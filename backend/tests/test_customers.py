@@ -91,8 +91,19 @@ class TestFullUpdateCustomer:
 
         assert test_customer.id == r.json()["id"]
 
-        updated_customer = CustomerUpdate(**r.json())
-        assert updated_customer.dict() == CustomerUpdate(**payload).dict(), r.text
+        updated_customer = CustomerCreateUpdate(**r.json())
+        assert updated_customer.dict() == CustomerCreateUpdate(**payload).dict(), r.text
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("payload", VALID_FULL_UPDATE_CUSTOMERS[:1])
+    async def test_full_update_nonexistent_customer(
+        self, app: FastAPI, client: AsyncClient, payload, test_customer: CustomerInDB
+    ):
+        r = await client.put(
+            app.url_path_for("customers:full-update-customer", customer_id="999999"),
+            json=payload,
+        )
+        assert r.status_code == HTTP_404_NOT_FOUND
 
 
 class TestPartialUpdateCustomer:
@@ -128,8 +139,16 @@ class TestPartialUpdateCustomer:
 
         assert test_customer.id == r.json()["id"]
 
-        # updated_customer = CustomerUpdate(**r.json())
-        # assert updated_customer.dict() == CustomerUpdate(**payload).dict(), r.text
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("payload", VALID_PARTIAL_UPDATE_CUSTOMERS[:1])
+    async def test_partial_update_nonexistent_customer(
+        self, app: FastAPI, client: AsyncClient, payload, test_customer: CustomerInDB
+    ):
+        r = await client.patch(
+            app.url_path_for("customers:partial-update-customer", customer_id="999999"),
+            json=payload,
+        )
+        assert r.status_code == HTTP_404_NOT_FOUND
 
 
 class TestGetCustomer:

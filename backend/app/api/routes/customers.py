@@ -66,7 +66,6 @@ async def create_customer(
     name="customers:full-update-customer",
 )
 async def full_update_customer(
-    # using CustomerCreate to validate input (required fields) as PUT is used to FULL update
     customer_update: CustomerCreateUpdate,
     customer_id: PositiveInt,
     customers_repo: CustomersRepository = Depends(get_repository(CustomersRepository)),
@@ -74,6 +73,8 @@ async def full_update_customer(
     updated_customer = await customers_repo.update_customer(
         customer_id=customer_id, customer_update=customer_update, patching=False
     )
+    if updated_customer is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Customer not found")
     return updated_customer
 
 
@@ -88,13 +89,14 @@ async def partial_update_customer(
     customer_id: PositiveInt,
     customers_repo: CustomersRepository = Depends(get_repository(CustomersRepository)),
 ):
-    # raise Exception(customer_update.dict(exclude_unset=True))
     if not customer_update.dict(exclude_unset=True):
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "empty payload")
 
     updated_customer = await customers_repo.update_customer(
         customer_id=customer_id, customer_update=customer_update, patching=True
     )
+    if updated_customer is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Customer not found")
     return updated_customer
 
 

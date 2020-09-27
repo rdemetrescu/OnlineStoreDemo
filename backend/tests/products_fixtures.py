@@ -1,9 +1,14 @@
 from typing import List
 
 import pytest
-from app.db.repositories.products import ProductsRepository
-from app.models.product import ProductCreateUpdate, ProductInDB, ProductUpdate
 from databases import Database
+from faker import Faker
+
+from app.db.repositories.products import ProductsRepository
+from app.models.product import ProductCreateUpdate, ProductInDB
+
+
+fake = Faker()
 
 
 @pytest.fixture
@@ -15,7 +20,7 @@ async def test_product(db: Database) -> ProductInDB:
             name="fake product name [A]",
             description="fake product description [A]",
             available=True,
-            price=600,
+            price=fake.random_number(digits=5) / 100,
         )
     )
 
@@ -30,7 +35,7 @@ async def test_10_products(db: Database) -> List[ProductInDB]:
                 name=f"fake product name [B] - {x}",
                 description=f"fake product description [B] - {x}",
                 available=x % 2,
-                price=x * 300,
+                price=x * fake.random_number(digits=5) / 100,
             )
         )
         for x in range(1, 11)

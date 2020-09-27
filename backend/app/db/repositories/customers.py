@@ -1,10 +1,10 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
-from sqlalchemy import select, or_
+from sqlalchemy import or_, select
 
 from app.db.repositories.base import BaseRepository
 from app.db.tables.customers import customers_table
-from app.models.customer import CustomerBase, CustomerCreateUpdate, CustomerInDB
+from app.models.customer import CustomerCreateUpdate, CustomerInDB, CustomerUpdate
 from app.models.pagination import Pagination
 
 
@@ -54,7 +54,7 @@ class CustomersRepository(BaseRepository):
         self,
         *,
         customer_id: int,
-        customer_update: CustomerBase,
+        customer_update: Union[CustomerCreateUpdate, CustomerUpdate],
         patching: bool,
     ) -> Optional[CustomerInDB]:
         customer = await self.get_customer_by_id(customer_id=customer_id)
@@ -86,7 +86,7 @@ class CustomersRepository(BaseRepository):
 
         # Apply validations for customer deletion
 
-        await self.db.fetch_one(
+        await self.db.execute(
             query=customers_table.delete().where(customers_table.c.id == customer_id)
         )
 

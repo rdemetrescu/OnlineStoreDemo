@@ -34,7 +34,7 @@ def create_product_table() -> None:
     op.create_table(
         "products",
         sa.Column("id", sa.Integer, primary_key=True),
-        sa.Column("name", sa.Text, nullable=False, index=True),
+        sa.Column("name", sa.String, nullable=False, index=True),
         sa.Column("description", sa.Text),
         sa.Column(
             "available",

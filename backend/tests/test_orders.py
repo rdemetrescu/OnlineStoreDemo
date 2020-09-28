@@ -22,6 +22,7 @@ from .orders_fixtures import (
     test_10_orders,
     test_order,
 )
+from .customers_fixtures import test_customer
 from .products_fixtures import test_10_products
 
 
@@ -33,9 +34,18 @@ class TestCreateOrder:
     @pytest.mark.asyncio
     @pytest.mark.parametrize("payload", INVALID_NEW_ORDERS)
     async def test_invalid_input_raises_error(
-        self, app: FastAPI, client: AsyncClient, test_10_products, payload
+        self,
+        app: FastAPI,
+        client: AsyncClient,
+        test_customer,
+        test_10_products,
+        payload,
     ):
         payload = copy.deepcopy(payload)
+
+        if payload.get("customer_id") == ...:
+            payload["customer_id"] = test_customer.id
+
         if payload.get("items"):
             for item, product in zip(payload["items"], test_10_products):
                 if item.get("product_id") == ...:
@@ -47,8 +57,18 @@ class TestCreateOrder:
     @pytest.mark.asyncio
     @pytest.mark.parametrize("payload", VALID_NEW_ORDERS)
     async def test_valid_input_create_order(
-        self, app: FastAPI, client: AsyncClient, payload, test_10_products
+        self,
+        app: FastAPI,
+        client: AsyncClient,
+        payload,
+        test_customer,
+        test_10_products,
     ):
+        payload = copy.deepcopy(payload)
+
+        if payload.get("customer_id") == ...:
+            payload["customer_id"] = test_customer.id
+
         for item, product in zip(payload["items"], test_10_products):
             if item.get("product_id") == ...:
                 item["product_id"] = product.id
@@ -89,11 +109,16 @@ class TestFullUpdateOrder:
         self,
         app: FastAPI,
         client: AsyncClient,
+        test_customer,
         test_10_products,
         payload,
         test_order: OrderWithItemsInDB,
     ):
         payload = copy.deepcopy(payload)
+
+        if payload.get("customer_id") == ...:
+            payload["customer_id"] = test_customer.id
+
         if payload.get("items"):
             for item, product in zip(payload["items"], test_10_products):
                 if item.get("product_id") == ...:
@@ -112,9 +137,15 @@ class TestFullUpdateOrder:
         app: FastAPI,
         client: AsyncClient,
         payload,
+        test_customer,
         test_order: OrderWithItemsInDB,
         test_10_products,
     ):
+        payload = copy.deepcopy(payload)
+
+        if payload.get("customer_id") == ...:
+            payload["customer_id"] = test_customer.id
+
         for item, product in zip(payload["items"], test_10_products):
             if item.get("product_id") == ...:
                 item["product_id"] = product.id
@@ -148,11 +179,16 @@ class TestPartialUpdateOrder:
         self,
         app: FastAPI,
         client: AsyncClient,
+        test_customer,
         test_10_products,
         payload,
         test_order: OrderWithItemsInDB,
     ):
         payload = copy.deepcopy(payload)
+
+        if payload.get("customer_id") == ...:
+            payload["customer_id"] = test_customer.id
+
         if payload.get("items"):
             for item, product in zip(payload["items"], test_10_products):
                 if item.get("product_id") == ...:
@@ -173,8 +209,14 @@ class TestPartialUpdateOrder:
         app: FastAPI,
         client: AsyncClient,
         payload,
+        test_customer,
         test_order: OrderWithItemsInDB,
     ):
+        payload = copy.deepcopy(payload)
+
+        if payload.get("customer_id") == ...:
+            payload["customer_id"] = test_customer.id
+
         r = await client.patch(
             app.url_path_for(
                 "orders:partial-update-order", order_id=str(test_order.id)
@@ -182,7 +224,7 @@ class TestPartialUpdateOrder:
             json=payload,
         )
 
-        assert r.status_code == HTTP_200_OK
+        assert r.status_code == HTTP_200_OK, r.text
 
         assert r.json()["total"] == test_order.total > 0
 
@@ -202,7 +244,7 @@ class TestGetOrder:
         )
         assert r.status_code == HTTP_200_OK
         order = OrderInDB(**r.json())
-        assert order.id == test_order.id
+        assert order.id == test_order.id, r.text
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(

@@ -10,6 +10,7 @@ from starlette.status import (
 
 from app.models.order import OrderWithItemsInDB
 from app.models.order_item import OrderItemCreateUpdate, OrderItemInDB
+from .customers_fixtures import test_customer
 from .orders_fixtures import test_order
 from .products_fixtures import test_10_products, test_product
 

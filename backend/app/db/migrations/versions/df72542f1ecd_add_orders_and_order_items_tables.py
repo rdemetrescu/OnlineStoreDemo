@@ -20,8 +20,10 @@ def create_orders_table() -> None:
     op.create_table(
         "orders",
         sa.Column("id", sa.Integer, primary_key=True),
-        # TODO: sa.Column("customer_id", sa.Integer, sa.ForeignKey("customers.id"), nullable=False),
-        # TODO: sa.Column("customer_name", sa.String, nullable=False),
+        sa.Column(
+            "customer_id", sa.Integer, sa.ForeignKey("customers.id"), nullable=False
+        ),
+        sa.Column("customer_name", sa.String, nullable=False),
         # billing columns
         sa.Column("billing_street", sa.String, nullable=False),
         sa.Column("billing_city", sa.String, nullable=False),

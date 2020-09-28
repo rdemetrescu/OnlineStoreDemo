@@ -14,7 +14,7 @@ async def not_implemented_exception_handler(*_):
     )
 
 
-@router.get("/", response_class=HTMLResponse)
+@router.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def home():
     return """<!DOCTYPE html>
 <html lang="en">

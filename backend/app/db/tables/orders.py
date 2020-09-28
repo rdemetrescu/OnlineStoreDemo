@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Table, String, Numeric
+from sqlalchemy import Column, Integer, Table, String, Numeric, ForeignKey
 
 
 from .base import metadata, default_timestamps_auditing
@@ -7,8 +7,8 @@ orders_table = Table(
     "orders",
     metadata,
     Column("id", Integer, primary_key=True),
-    # TODO: Column("customer_id", Integer, ForeignKey("customers.id"), nullable=False),
-    # TODO: Column("customer_name", String, nullable=False),
+    Column("customer_id", Integer, ForeignKey("customers.id"), nullable=False),
+    Column("customer_name", String, nullable=False),
     # billing columns
     Column("billing_street", String, nullable=False),
     Column("billing_city", String, nullable=False),

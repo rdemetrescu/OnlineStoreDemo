@@ -20,6 +20,7 @@ from app.models.order_item import (
 )
 from app.models.pagination import Pagination
 from app.utils import dict_include_prefix, dict_remove_prefix
+from .customers import CustomersRepository
 
 
 SQL_INSERT_ORDER_ITEMS = """
@@ -79,7 +80,15 @@ class OrdersRepository(BaseRepository):
             return OrderInDB(**self.adapt_order_flatten_to_model(order))
 
     async def create_order(self, *, new_order: OrderCreateUpdate) -> OrderWithItemsInDB:
+        customers_repo = CustomersRepository(self.db)
+        customer = await customers_repo.get_customer_by_id(
+            customer_id=new_order.customer_id
+        )
+        if customer is None:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Customer not found")
+
         query_values = self.adapt_order_model_to_flatten(new_order)
+        query_values["customer_name"] = customer.name
         query_values["total"] = 0
 
         async with self.db.transaction():
@@ -144,6 +153,20 @@ class OrdersRepository(BaseRepository):
         query_values = self.adapt_order_model_to_flatten(
             order_update, exclude_unset=patching
         )
+
+        if "customer_id" in query_values:
+            customer_id = order_update.customer_id
+            if customer_id is None:
+                raise HTTPException(
+                    status.HTTP_422_UNPROCESSABLE_ENTITY, "customer_id can not be null"
+                )
+
+            customers_repo = CustomersRepository(self.db)
+            customer = await customers_repo.get_customer_by_id(customer_id=customer_id)
+            if customer is None:
+                raise HTTPException(status.HTTP_400_BAD_REQUEST, "Customer not found")
+
+            query_values["customer_name"] = customer.name
 
         if not patching:
             query_values["total"] = 0
@@ -228,7 +251,10 @@ class OrdersRepository(BaseRepository):
         Convert nested dict structure to a flatten dict (only billing and shipping addresses)
         """
         flatten = dict(
-            **order.dict(exclude={"billing_address", "shipping_address", "items"}),
+            **order.dict(
+                exclude={"billing_address", "shipping_address", "items"},
+                exclude_unset=exclude_unset,
+            ),
             **dict_include_prefix(
                 order.dict(
                     include={"billing_address"}, exclude_unset=exclude_unset
@@ -248,7 +274,15 @@ class OrdersRepository(BaseRepository):
         model = {
             k: v
             for k, v in flatten.items()
-            if k in ("id", "total", "created_at", "updated_at")
+            if k
+            in (
+                "id",
+                "customer_id",
+                "customer_name",
+                "total",
+                "created_at",
+                "updated_at",
+            )
         }
 
         aux = dict_remove_prefix(flatten, "billing_")

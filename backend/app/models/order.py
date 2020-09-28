@@ -8,11 +8,13 @@ from .order_item import OrderItem, OrderItemCreateUpdate, OrderItemInDB
 
 
 class OrderBase(BaseModel):
+    customer_id: Optional[int]
     billing_address: Optional[AddressBase]
     shipping_address: Optional[AddressBase]
 
 
 class OrderCreateUpdate(OrderBase):
+    customer_id: int
     billing_address: AddressCreateUpdate
     shipping_address: AddressCreateUpdate
     items: List[OrderItemCreateUpdate]
@@ -23,6 +25,7 @@ class OrderUpdate(OrderBase):
 
 
 class Order(IDModelMixin, DateTimeModelMixin, OrderBase):
+    customer_id: int
     billing_address: AddressBase
     shipping_address: AddressBase
     total: float
@@ -33,6 +36,7 @@ class OrderWithItems(Order):
 
 
 class OrderInDB(IDModelMixin, DateTimeModelMixin, OrderBase):
+    customer_id: int
     billing_address: AddressBase
     shipping_address: AddressBase
     total: float

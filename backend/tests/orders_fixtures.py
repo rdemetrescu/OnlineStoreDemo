@@ -12,11 +12,14 @@ fake = Faker()
 
 
 @pytest.fixture
-async def test_order(db: Database, test_10_products) -> OrderWithItemsInDB:
+async def test_order(
+    db: Database, test_customer, test_10_products
+) -> OrderWithItemsInDB:
     order_repo = OrdersRepository(db)
 
     return await order_repo.create_order(
         new_order=OrderCreateUpdate(
+            customer_id=test_customer.id,
             billing_address=dict(
                 street=fake.street_address(),
                 city=fake.city(),
@@ -44,12 +47,15 @@ async def test_order(db: Database, test_10_products) -> OrderWithItemsInDB:
 
 
 @pytest.fixture
-async def test_10_orders(db: Database) -> List[OrderInDB]:
+async def test_10_orders(
+    db: Database, test_customer, test_10_products
+) -> List[OrderInDB]:
     order_repo = OrdersRepository(db)
 
     return [
         await order_repo.create_order(
             new_order=OrderCreateUpdate(
+                customer_id=test_customer.id,
                 billing_address=dict(
                     street=fake.street_address(),
                     city=fake.city(),
@@ -64,7 +70,10 @@ async def test_10_orders(db: Database) -> List[OrderInDB]:
                     zip=fake.zipcode(),
                     country=fake.country(),
                 ),
-                items=[dict(product_id=1, qty=17), dict(product_id=2, qty=30)],
+                items=[
+                    dict(product_id=test_10_products[0].id, qty=20),
+                    dict(product_id=test_10_products[1].id, qty=30),
+                ],
             )
         )
         for _ in range(1, 11)
@@ -73,6 +82,7 @@ async def test_10_orders(db: Database) -> List[OrderInDB]:
 
 VALID_NEW_ORDERS = (
     dict(
+        customer_id=...,
         billing_address=dict(
             street=fake.street_address(),
             city=fake.city(),
@@ -96,7 +106,27 @@ INVALID_NEW_ORDERS = (
         # empty info
     ),
     dict(
+        # missing customer_id
+        # customer_id=...,
+        billing_address=dict(
+            street=fake.street_address(),
+            city=fake.city(),
+            state=fake.city(),
+            zip=fake.zipcode(),
+            country=fake.country(),
+        ),
+        shipping_address=dict(
+            street=fake.street_address(),
+            city=fake.city(),
+            state=fake.city(),
+            zip=fake.zipcode(),
+            country=fake.country(),
+        ),
+        items=[dict(product_id=1, qty=10), dict(product_id=2, qty=3)],
+    ),
+    dict(
         # missing complete billing address
+        customer_id=...,
         billing_address=dict(
             street=fake.street_address(),
             # city=fake.city(),
@@ -115,6 +145,7 @@ INVALID_NEW_ORDERS = (
     ),
     dict(
         # missing complete shipping address
+        customer_id=...,
         billing_address=dict(
             street=fake.street_address(),
             city=fake.city(),
@@ -133,6 +164,7 @@ INVALID_NEW_ORDERS = (
     ),
     dict(
         # missing items - I
+        customer_id=...,
         billing_address=dict(
             street=fake.street_address(),
             city=fake.city(),
@@ -151,6 +183,7 @@ INVALID_NEW_ORDERS = (
     ),
     dict(
         # missing items - II
+        customer_id=...,
         billing_address=dict(
             street=fake.street_address(),
             city=fake.city(),
@@ -169,6 +202,7 @@ INVALID_NEW_ORDERS = (
     ),
     dict(
         # missing complete items (product_id)
+        customer_id=...,
         billing_address=dict(
             street=fake.street_address(),
             city=fake.city(),
@@ -187,6 +221,7 @@ INVALID_NEW_ORDERS = (
     ),
     dict(
         # missing complete items (qry)
+        customer_id=...,
         billing_address=dict(
             street=fake.street_address(),
             city=fake.city(),
@@ -207,6 +242,7 @@ INVALID_NEW_ORDERS = (
 
 VALID_FULL_UPDATE_ORDERS = (
     dict(
+        customer_id=...,
         billing_address=dict(
             street=fake.street_address(),
             city=fake.city(),
@@ -232,11 +268,12 @@ VALID_FULL_UPDATE_ORDERS = (
 INVALID_FULL_UPDATE_ORDERS = INVALID_NEW_ORDERS
 
 VALID_PARTIAL_UPDATE_ORDERS = (
+    dict(customer_id=...),
     dict(
         billing_address=dict(
             street=fake.street_address(),
             city=fake.city(),
-            state=fake.city(),
+            # state=fake.city(),
             zip=fake.zipcode(),
             country=fake.country(),
         ),
@@ -244,14 +281,9 @@ VALID_PARTIAL_UPDATE_ORDERS = (
             street=fake.street_address(),
             city=fake.city(),
             state=fake.city(),
-            zip=fake.zipcode(),
-            country=fake.country(),
+            # zip=fake.zipcode(),
+            # country=fake.country(),
         ),
-        items=[
-            dict(product_id=1, qty=300),
-            dict(product_id=3, qty=134),
-            dict(product_id=5, qty=1),
-        ],
     ),
 )
 

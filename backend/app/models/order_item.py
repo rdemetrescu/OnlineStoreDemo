@@ -7,8 +7,8 @@ from .address import AddressBase, AddressCreateUpdate
 
 
 class OrderItemBase(BaseModel):
-    product_id: PositiveInt
-    qty: PositiveInt
+    product_id: Optional[PositiveInt]
+    qty: Optional[PositiveInt]
 
 
 class OrderItemCreateUpdate(BaseModel):
@@ -21,12 +21,10 @@ class OrderItemUpdate(OrderItemBase):
 
 
 class OrderItem(IDModelMixin, DateTimeModelMixin, OrderItemBase):
-    order_id: int
-    product_id: int
-    product_name: str
-    price: float
-    qty: int
-    total: float
+    order_id: Optional[int]
+    product_name: Optional[str]
+    price: Optional[float]
+    total: Optional[float]
 
 
 class OrderItemInDB(IDModelMixin, DateTimeModelMixin, OrderItemBase):

@@ -193,7 +193,7 @@ class TestGetProduct:
         r = await client.get(app.url_path_for("products:get-all-products"))
 
         assert r.status_code == HTTP_200_OK
-        assert len(r.json()) >= len(test_10_products)
+        assert len(r.json()) >= len(test_10_products) > 0
 
     @pytest.mark.asyncio
     async def test_get_products_pagination(

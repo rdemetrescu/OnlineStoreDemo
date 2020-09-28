@@ -2,7 +2,7 @@ from typing import Mapping, Optional, List, Union
 
 from fastapi import status, HTTPException
 from fastapi.exceptions import HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from starlette.responses import HTMLResponse
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 
@@ -14,6 +14,11 @@ from app.models.order import (
     OrderInDB,
     OrderUpdate,
     OrderWithItemsInDB,
+)
+from app.models.order_item import (
+    OrderItemCreateUpdate,
+    OrderItemInDB,
+    OrderItemUpdate,
 )
 from app.models.pagination import Pagination
 from app.utils import dict_include_prefix, dict_remove_prefix
@@ -272,3 +277,122 @@ class OrdersRepository(BaseRepository):
         """,
             values=dict(order_id=order_id),
         )
+
+    # ===================================================================
+    # OrderItem routines
+    # ===================================================================
+
+    async def get_all_order_items(
+        self, *, order_id: int, pagination: Pagination
+    ) -> Optional[List[OrderItemInDB]]:
+
+        query = (
+            select([order_items_table])
+            .where(
+                order_items_table.c.order_id == order_id,
+            )
+            .limit(pagination.limit)
+            .offset(pagination.skip)
+        )
+        order_items = await self.db.fetch_all(query=query)
+        return [OrderItemInDB(**order_item) for order_item in order_items]
+
+    async def get_order_item_by_id(
+        self, *, order_id: int, order_item_id: int
+    ) -> Optional[OrderItemInDB]:
+        order_item = await self.db.fetch_one(
+            query=select([order_items_table]).where(
+                and_(
+                    order_items_table.c.order_id == order_id,
+                    order_items_table.c.id == order_item_id,
+                )
+            )
+        )
+
+        if not order_item is None:
+            return OrderItemInDB(**order_item)
+
+    async def create_order_item(
+        self, *, order_id: int, new_order_item: OrderItemCreateUpdate
+    ) -> OrderItemInDB:
+        query_values = new_order_item.dict()
+        query_values["order_id"] = order_id
+
+        async with self.db.transaction():
+            item_db = await self.db.fetch_one(
+                query=SQL_INSERT_ORDER_ITEMS,
+                values=query_values,
+            )
+
+            await self.update_order_total(order_id)
+
+            return OrderItemInDB(**item_db)
+
+    async def update_order_item(
+        self,
+        *,
+        order_id: int,
+        order_item_id: int,
+        order_item_update: Union[OrderItemCreateUpdate, OrderItemUpdate],
+        patching: bool,
+    ) -> Optional[OrderItemInDB]:
+
+        # order = await self.get_order_by_id(order_id=order_id)
+
+        order_item = await self.get_order_item_by_id(
+            order_id=order_id, order_item_id=order_item_id
+        )
+
+        if order_item is None:
+            return
+
+        query_values = order_item_update.dict(exclude_unset=patching)
+
+        async with self.db.transaction():
+            item_db = await self.db.fetch_one(
+                query=order_items_table.update()
+                .where(
+                    and_(
+                        order_items_table.c.order_id == order_id,
+                        order_items_table.c.id == order_item_id,
+                    )
+                )
+                .returning(*order_items_table.columns),
+                values=query_values,
+            )
+
+            await self.update_order_total(order_id)
+
+            return OrderItemInDB(**item_db)
+
+    # ---
+
+    async def delete_order_item_by_id(
+        self,
+        *,
+        order_id: int,
+        order_item_id: int,
+    ) -> Optional[OrderItemInDB]:
+
+        # order = await self.get_order_by_id(order_id=order_id)
+
+        order_item = await self.get_order_item_by_id(
+            order_id=order_id, order_item_id=order_item_id
+        )
+
+        if order_item is None:
+            return
+
+        async with self.db.transaction():
+            item_db = await self.db.fetch_one(
+                query=order_items_table.delete().where(
+                    and_(
+                        order_items_table.c.order_id == order_id,
+                        order_items_table.c.id == order_item_id,
+                    )
+                )
+            )
+
+            await self.update_order_total(order_id)
+
+            return order_item

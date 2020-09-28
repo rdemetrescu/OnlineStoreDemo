@@ -2,7 +2,12 @@ import copy
 from typing import List
 
 import pytest
-from app.models.order import OrderCreateUpdate, OrderInDB, OrderUpdate
+from app.models.order import (
+    OrderCreateUpdate,
+    OrderWithItemsInDB,
+    OrderInDB,
+    OrderUpdate,
+)
 from fastapi import FastAPI
 from httpx import AsyncClient
 from starlette.status import (
@@ -92,7 +97,7 @@ class TestFullUpdateOrder:
         client: AsyncClient,
         test_10_products,
         payload,
-        test_order: OrderInDB,
+        test_order: OrderWithItemsInDB,
     ):
         payload = copy.deepcopy(payload)
         if payload.get("items"):
@@ -113,7 +118,7 @@ class TestFullUpdateOrder:
         app: FastAPI,
         client: AsyncClient,
         payload,
-        test_order: OrderInDB,
+        test_order: OrderWithItemsInDB,
         test_10_products,
     ):
         for item, product in zip(payload["items"], test_10_products):
@@ -143,7 +148,6 @@ class TestPartialUpdateOrder:
     Testing PATCH calls
     """
 
-    # ZECA
     @pytest.mark.asyncio
     @pytest.mark.parametrize("payload", INVALID_PARTIAL_UPDATE_ORDERS)
     async def test_invalid_input_raises_error(
@@ -152,7 +156,7 @@ class TestPartialUpdateOrder:
         client: AsyncClient,
         test_10_products,
         payload,
-        test_order: OrderInDB,
+        test_order: OrderWithItemsInDB,
     ):
         payload = copy.deepcopy(payload)
         if payload.get("items"):
@@ -175,7 +179,7 @@ class TestPartialUpdateOrder:
         app: FastAPI,
         client: AsyncClient,
         payload,
-        test_order: OrderInDB,
+        test_order: OrderWithItemsInDB,
     ):
         r = await client.patch(
             app.url_path_for(
@@ -196,7 +200,7 @@ class TestGetOrder:
 
     @pytest.mark.asyncio
     async def test_get_order_by_id(
-        self, app: FastAPI, client: AsyncClient, test_order: OrderInDB
+        self, app: FastAPI, client: AsyncClient, test_order: OrderWithItemsInDB
     ):
 
         r = await client.get(
@@ -231,7 +235,7 @@ class TestGetOrder:
         r = await client.get(app.url_path_for("orders:get-all-orders"))
 
         assert r.status_code == HTTP_200_OK
-        assert len(r.json()) >= len(test_10_orders)
+        assert len(r.json()) >= len(test_10_orders) > 0
 
     @pytest.mark.asyncio
     async def test_get_orders_pagination(
@@ -263,7 +267,7 @@ class TestDeleteOrder:
 
     @pytest.mark.asyncio
     async def test_delete_order_by_id(
-        self, app: FastAPI, client: AsyncClient, test_order: OrderInDB
+        self, app: FastAPI, client: AsyncClient, test_order: OrderWithItemsInDB
     ):
 
         r = await client.delete(

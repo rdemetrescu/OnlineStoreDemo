@@ -1,3 +1,4 @@
+from tests.products_fixtures import test_10_products
 from typing import List
 
 import pytest
@@ -5,13 +6,13 @@ from databases import Database
 from faker import Faker
 
 from app.db.repositories.orders import OrdersRepository
-from app.models.order import OrderCreateUpdate, OrderInDB
+from app.models.order import OrderCreateUpdate, OrderInDB, OrderWithItemsInDB
 
 fake = Faker()
 
 
 @pytest.fixture
-async def test_order(db: Database) -> OrderInDB:
+async def test_order(db: Database, test_10_products) -> OrderWithItemsInDB:
     order_repo = OrdersRepository(db)
 
     return await order_repo.create_order(
@@ -30,7 +31,14 @@ async def test_order(db: Database) -> OrderInDB:
                 zip=fake.zipcode(),
                 country=fake.country(),
             ),
-            items=[dict(product_id=1, qty=17), dict(product_id=2, qty=30)],
+            items=[
+                dict(product_id=test_10_products[0].id, qty=17),
+                dict(product_id=test_10_products[1].id, qty=18),
+                dict(product_id=test_10_products[2].id, qty=330),
+                dict(product_id=test_10_products[3].id, qty=1),
+                dict(product_id=test_10_products[4].id, qty=14),
+                dict(product_id=test_10_products[5].id, qty=45),
+            ],
         )
     )
 

@@ -19,6 +19,7 @@ router = APIRouter()
     "/",
     response_model=List[Order],
     name="orders:get-all-orders",
+    summary="Get all orders",
 )
 async def get_all_orders(
     pagination: Pagination = Depends(),
@@ -32,6 +33,7 @@ async def get_all_orders(
     "/{order_id}",
     response_model=Order,
     name="orders:get-order-by-id",
+    summary="Get an order",
 )
 async def get_order_by_id(
     order_id: PositiveInt,
@@ -48,6 +50,7 @@ async def get_order_by_id(
     response_model=OrderWithItems,
     status_code=status.HTTP_201_CREATED,
     name="orders:create-order",
+    summary="Create a new order",
 )
 async def create_order(
     new_order: OrderCreateUpdate,
@@ -62,6 +65,9 @@ async def create_order(
     response_model=OrderWithItems,
     status_code=status.HTTP_200_OK,
     name="orders:full-update-order",
+    description="""Update **all** order fields with new information. **WARNING**: this operation will replace all previous order items with the news items.
+
+If you need to update only a few fields, please use the **PATCH** method.""",
 )
 async def full_update_order(
     order_update: OrderCreateUpdate,
@@ -79,6 +85,8 @@ async def full_update_order(
     response_model=Order,
     status_code=status.HTTP_200_OK,
     name="orders:partial-update-order",
+    summary="Update an order (partial update)",
+    description="Update only the order fields you need",
 )
 async def partial_update_order(
     order_update: OrderUpdate,
@@ -100,6 +108,7 @@ async def partial_update_order(
     "/{order_id}",
     response_model=Order,
     name="orders:delete-order-by-id",
+    summary="Delete an order",
 )
 async def delete_order_by_id(
     order_id: PositiveInt,
@@ -113,7 +122,7 @@ async def delete_order_by_id(
 
 
 # ==============================================
-# ==============================================
+# ORDER ITEMS
 # ==============================================
 
 
@@ -121,6 +130,7 @@ async def delete_order_by_id(
     "/{order_id}/items/{order_item_id}",
     response_model=OrderItem,
     name="orders:get-order-item-by-id",
+    summary="Get an order item",
 )
 async def get_order_item_by_id(
     order_id: PositiveInt,
@@ -139,6 +149,7 @@ async def get_order_item_by_id(
     "/{order_id}/items",
     response_model=List[OrderItem],
     name="orders:get-all-order-items",
+    summary="Get all order items",
 )
 async def get_all_order_items(
     order_id: PositiveInt,
@@ -157,6 +168,7 @@ async def get_all_order_items(
     response_model=OrderItem,
     status_code=status.HTTP_201_CREATED,
     name="orders:create-order-item",
+    summary="Create a new order item",
 )
 async def create_order_item(
     order_id: PositiveInt,
@@ -174,6 +186,7 @@ async def create_order_item(
     response_model=OrderItem,
     status_code=status.HTTP_200_OK,
     name="orders:full-update-order-item",
+    summary="Update an order item (full update)",
 )
 async def full_update_order_item(
     order_id: PositiveInt,
@@ -195,6 +208,7 @@ async def full_update_order_item(
     response_model=OrderItem,
     status_code=status.HTTP_200_OK,
     name="orders:partial-update-order-item",
+    summary="Upate an order item",
 )
 async def partial_update_order_item(
     order_id: PositiveInt,
@@ -220,6 +234,7 @@ async def partial_update_order_item(
     "/{order_id}/items/{order_item_id}",
     response_model=OrderItem,
     name="orders:delete-order-item-by-id",
+    summary="Delete an order item",
 )
 async def delete_order_item_by_id(
     order_id: PositiveInt,
@@ -233,3 +248,20 @@ async def delete_order_item_by_id(
     if order_item is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "OrderItem not found")
     return order_item
+
+
+@router.delete(
+    "/{order_id}/items",
+    response_model=Order,
+    name="orders:delete-all-order-items",
+    summary="Delete an order items",
+)
+async def delete_order_items(
+    order_id: PositiveInt,
+    orders_repo: OrdersRepository = Depends(get_repository(OrdersRepository)),
+):
+    order = await orders_repo.delete_order_items(order_id=order_id)
+
+    if order is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Order not found")
+    return order

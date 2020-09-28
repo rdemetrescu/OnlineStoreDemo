@@ -18,6 +18,8 @@ router = APIRouter()
     "/",
     response_model=List[Customer],
     name="customers:get-all-customers",
+    summary="Get all customers",
+    description="Retrieves a list of customers. Use the **search** parameter to filter customers by their names or emails",
 )
 async def get_all_customers(
     search: Optional[str] = None,
@@ -34,6 +36,7 @@ async def get_all_customers(
     "/{customer_id}",
     response_model=Customer,
     name="customers:get-customer-by-id",
+    summary="Get a customer",
 )
 async def get_customer_by_id(
     customer_id: PositiveInt,
@@ -50,6 +53,7 @@ async def get_customer_by_id(
     response_model=Customer,
     status_code=status.HTTP_201_CREATED,
     name="customers:create-customer",
+    summary="Create a new customer",
 )
 async def create_customer(
     new_customer: CustomerCreateUpdate,
@@ -64,6 +68,10 @@ async def create_customer(
     response_model=Customer,
     status_code=status.HTTP_200_OK,
     name="customers:full-update-customer",
+    summary="Update a customer (full update)",
+    description="""Update **all** customer fields with new information.
+
+If you need to update only a few fields, please use the **PATCH** method.""",
 )
 async def full_update_customer(
     customer_update: CustomerCreateUpdate,
@@ -83,6 +91,8 @@ async def full_update_customer(
     response_model=Customer,
     status_code=status.HTTP_200_OK,
     name="customers:partial-update-customer",
+    summary="Update a customer (partial update)",
+    description="Update only the customer fields you need",
 )
 async def partial_update_customer(
     customer_update: CustomerUpdate,
@@ -104,6 +114,7 @@ async def partial_update_customer(
     "/{customer_id}",
     response_model=Customer,
     name="customers:delete-customer-by-id",
+    summary="Delete a customer",
 )
 async def delete_customer_by_id(
     customer_id: PositiveInt,

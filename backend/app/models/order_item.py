@@ -1,9 +1,8 @@
 from typing import List, Optional
 
-from app.models.core import BaseModel, DateTimeModelMixin, IDModelMixin
 from pydantic.types import PositiveInt
 
-from .address import AddressBase, AddressCreateUpdate
+from app.models.core import BaseModel, DateTimeModelMixin, IDModelMixin
 
 
 class OrderItemBase(BaseModel):

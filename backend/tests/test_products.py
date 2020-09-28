@@ -1,7 +1,6 @@
 from typing import List
 
 import pytest
-from app.models.product import ProductCreateUpdate, ProductInDB, ProductUpdate
 from fastapi import FastAPI
 from httpx import AsyncClient
 from starlette.status import (
@@ -11,6 +10,7 @@ from starlette.status import (
     HTTP_422_UNPROCESSABLE_ENTITY,
 )
 
+from app.models.product import ProductCreateUpdate, ProductInDB
 from .products_fixtures import (
     INVALID_FULL_UPDATE_PRODUCTS,
     INVALID_NEW_PRODUCTS,

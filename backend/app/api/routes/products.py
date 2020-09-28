@@ -10,7 +10,6 @@ from app.db.repositories.products import ProductsRepository
 from app.models.pagination import Pagination
 from app.models.product import Product, ProductCreateUpdate, ProductUpdate
 
-
 router = APIRouter()
 
 
@@ -18,6 +17,8 @@ router = APIRouter()
     "/",
     response_model=List[Product],
     name="products:get-all-products",
+    summary="Get all products",
+    description="Retrieves a list of products. Use the **search** parameter to filter products by their names",
 )
 async def get_all_products(
     search: Optional[str] = None,
@@ -34,6 +35,7 @@ async def get_all_products(
     "/{product_id}",
     response_model=Product,
     name="products:get-product-by-id",
+    summary="Get a product",
 )
 async def get_product_by_id(
     product_id: PositiveInt,
@@ -50,6 +52,7 @@ async def get_product_by_id(
     response_model=Product,
     status_code=status.HTTP_201_CREATED,
     name="products:create-product",
+    summary="Create a new product",
 )
 async def create_product(
     new_product: ProductCreateUpdate,
@@ -64,6 +67,10 @@ async def create_product(
     response_model=Product,
     status_code=status.HTTP_200_OK,
     name="products:full-update-product",
+    summary="Update a product (full update)",
+    description="""Update **all** product fields with new information.
+
+If you need to update only a few fields, please use the **PATCH** method.""",
 )
 async def full_update_product(
     product_update: ProductCreateUpdate,
@@ -83,6 +90,8 @@ async def full_update_product(
     response_model=Product,
     status_code=status.HTTP_200_OK,
     name="products:partial-update-product",
+    summary="Update a product (partial update)",
+    description="Update only the product fields you need",
 )
 async def partial_update_product(
     product_update: ProductUpdate,
@@ -104,6 +113,7 @@ async def partial_update_product(
     "/{product_id}",
     response_model=Product,
     name="products:delete-product-by-id",
+    summary="Delete a product",
 )
 async def delete_product_by_id(
     product_id: PositiveInt,

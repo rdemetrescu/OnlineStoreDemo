@@ -1,7 +1,6 @@
 from typing import List
 
 import pytest
-from app.models.customer import CustomerCreateUpdate, CustomerInDB, CustomerUpdate
 from fastapi import FastAPI
 from httpx import AsyncClient
 from starlette.status import (
@@ -21,6 +20,8 @@ from .customers_fixtures import (
     test_10_customers,
     test_customer,
 )
+
+from app.models.customer import CustomerCreateUpdate, CustomerInDB
 
 
 class TestCreateCustomer:

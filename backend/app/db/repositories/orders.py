@@ -3,8 +3,6 @@ from typing import Mapping, Optional, List, Union
 from fastapi import status, HTTPException
 from fastapi.exceptions import HTTPException
 from sqlalchemy import select, and_
-from starlette.responses import HTMLResponse
-from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 
 from app.db.repositories.base import BaseRepository
 from app.db.tables.orders import orders_table
@@ -268,7 +266,7 @@ class OrdersRepository(BaseRepository):
             query="""
         update orders set
             total = (
-                select sum(it.total)
+                select coalesce(sum(it.total), 0)
                 from order_items as it
                 where it.order_id = orders.id
             )
@@ -396,3 +394,34 @@ class OrdersRepository(BaseRepository):
             await self.update_order_total(order_id)
 
             return order_item
+
+    async def delete_order_items(
+        self,
+        *,
+        order_id: int,
+    ) -> Optional[OrderInDB]:
+
+        order = await self.get_order_by_id(order_id=order_id)
+
+        if order is None:
+            return
+
+        async with self.db.transaction():
+            item_db = await self.db.fetch_one(
+                query=order_items_table.delete().where(
+                    order_items_table.c.order_id == order_id,
+                )
+            )
+
+            await self.update_order_total(order_id)
+
+            order = await self.db.fetch_one(
+                query=select([orders_table]).where(orders_table.c.id == order_id)
+            )
+
+            if order is None:
+                raise Exception("Something went really wrong")
+
+            return OrderInDB(
+                **self.adapt_order_flatten_to_model(order),
+            )

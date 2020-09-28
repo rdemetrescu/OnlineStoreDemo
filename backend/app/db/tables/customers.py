@@ -1,18 +1,18 @@
-from sqlalchemy import Boolean, Column, Integer, Numeric, Table, Text
+from sqlalchemy import Column, Integer, String, Table
 
-from .base import metadata, default_timestamps_auditing
+from .base import default_timestamps_auditing, metadata
 
 customers_table = Table(
     "customers",
     metadata,
     Column("id", Integer, primary_key=True),
-    Column("name", Text, nullable=False),
-    Column("email", Text, nullable=False, unique=True),
-    Column("phone", Text, nullable=False),
-    Column("street", Text, nullable=False),
-    Column("city", Text, nullable=False),
-    Column("state", Text, nullable=False),
-    Column("zip", Text, nullable=False),
-    Column("country", Text, nullable=False),
+    Column("name", String, nullable=False),
+    Column("email", String, nullable=False, unique=True),
+    Column("phone", String, nullable=False),
+    Column("street", String, nullable=False),
+    Column("city", String, nullable=False),
+    Column("state", String, nullable=False),
+    Column("zip", String, nullable=False),
+    Column("country", String, nullable=False),
     *default_timestamps_auditing()
 )

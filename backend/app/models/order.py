@@ -3,11 +3,8 @@ from typing import List, Optional
 from click.core import Option
 
 from app.models.core import BaseModel, DateTimeModelMixin, IDModelMixin
-from pydantic.types import PositiveInt
-
 from .address import AddressBase, AddressCreateUpdate
-
-from .order_item import OrderItemCreateUpdate, OrderItemInDB, OrderItem
+from .order_item import OrderItem, OrderItemCreateUpdate, OrderItemInDB
 
 
 class OrderBase(BaseModel):

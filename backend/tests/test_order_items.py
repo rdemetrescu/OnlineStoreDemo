@@ -1,15 +1,4 @@
-import copy
-from typing import List
-
 import pytest
-from app.models.order import (
-    OrderCreateUpdate,
-    OrderInDB,
-    OrderWithItemsInDB,
-    OrderUpdate,
-)
-from app.models.order_item import OrderItemCreateUpdate, OrderItemUpdate
-from app.models.order_item import OrderItemInDB
 from fastapi import FastAPI
 from httpx import AsyncClient
 from starlette.status import (
@@ -19,21 +8,10 @@ from starlette.status import (
     HTTP_422_UNPROCESSABLE_ENTITY,
 )
 
-from .products_fixtures import test_product
-
-
-from .orders_fixtures import (
-    INVALID_FULL_UPDATE_ORDERS,
-    INVALID_NEW_ORDERS,
-    INVALID_PARTIAL_UPDATE_ORDERS,
-    VALID_FULL_UPDATE_ORDERS,
-    VALID_NEW_ORDERS,
-    VALID_PARTIAL_UPDATE_ORDERS,
-    test_10_orders,
-    test_order,
-)
-
-from .products_fixtures import test_10_products
+from app.models.order import OrderWithItemsInDB
+from app.models.order_item import OrderItemCreateUpdate, OrderItemInDB
+from .orders_fixtures import test_order
+from .products_fixtures import test_10_products, test_product
 
 
 class TestCreateOrderItem:
